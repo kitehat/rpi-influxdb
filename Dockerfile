@@ -1,20 +1,16 @@
 # Pull base image
-FROM resin/rpi-raspbian:jessie
-MAINTAINER Henrik Östman <trycoon@gmail.com>
+FROM resin/rpi-raspbian:buster
 
-# Setup external package-sources
-RUN apt-get update && apt-get install -y \
-    apt-transport-https \
-    curl \
-    --no-install-recommends && \ 
-    curl -sL https://repos.influxdata.com/influxdb.key | sudo apt-key add - source /etc/os-release && \
-    echo "deb https://repos.influxdata.com/debian jessie stable" | sudo tee /etc/apt/sources.list.d/influxdb.list && \
-    apt-get update && apt-get install -y \
-    influxdb=1.2.2-1 \
-    --no-install-recommends && \
-    apt-get remove --auto-remove -y \
-    apt-transport-https && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt update -y
+RUN apt install -y wget
+RUN wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
+RUN echo "deb https://repos.influxdata.com/debian buster stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
+RUN apt update -y
+RUN apt install -y influxdb --no-install-recommends
+RUN apt-get remove --auto-remove -y
+RUN rm /etc/apt/sources.list.d/influxdb.list
+RUN systemctl unmask influxdb
+RUN systemctl enable influxdb
 
 COPY influxdb.conf /etc/influxdb/influxdb.conf
 
